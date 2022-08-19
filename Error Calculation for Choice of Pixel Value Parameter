@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2 as cv
+from scipy      import optimize
+from scipy      import  odr
+
+p=150
+Radiivaluesfordifferentp=[]
+
+while p<191:
+    img1 = cv.imread('Insert image name here',0)
+    img1 =np.array(img1)
+    i=0
+    x=[]
+    y=[]
+    j=0
+    for i in range(img1.shape[0]) :
+        for j in range (img1.shape[1]):
+            if img1[i,j] >p:
+                img1[i,j]=0
+            else:
+                x.append(j)
+                y.append(img1.shape[0]-i)
+
+            
+    def calc_R(xc, yc):
+        return np.sqrt((x-xc)**2 + (y-yc)**2)
+
+    def f_2(c):
+        Ri = calc_R(*c)
+        return Ri - Ri.mean()
+
+    center_estimate = -1000, -1500
+    center, ier_2 = optimize.leastsq(f_2, center_estimate)
+
+    xc, yc = center
+    Ri       = calc_R(*center)
+    R       = Ri.mean()
+    residu   = sum((Ri - R)**2)
+    Radiivaluesfordifferentp.append(R)
+    p=p+1
+
+print(np.std(Radiivaluesfordifferentp))
